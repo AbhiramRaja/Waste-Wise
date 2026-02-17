@@ -1,0 +1,80 @@
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: 28 25 23;
+    --bg-secondary: 41 37 36;
+    --text-primary: 250 250 249;
+    --text-secondary: 168 162 158;
+    --border: 68 64 60;
+    --accent: 52 211 153;
+  }
+
+  body {
+    @apply bg-[rgb(var(--bg-primary))] text-[rgb(var(--text-primary))];
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-[rgb(var(--bg-secondary))];
+    @apply border border-[rgb(var(--border))];
+    @apply rounded-xl p-8 shadow-sm;
+    @apply transition-all duration-200 hover:shadow-md;
+  }
+
+  .btn-primary {
+    @apply bg-emerald-600 hover:bg-emerald-700;
+    @apply text-white font-medium py-3 px-6 rounded-lg;
+    @apply shadow-sm hover:shadow;
+    @apply transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-stone-800 hover:bg-stone-700;
+    @apply text-stone-200;
+    @apply font-medium py-3 px-6 rounded-lg;
+    @apply border border-[rgb(var(--border))];
+    @apply transition-all duration-200;
+  }
+
+  .gradient-text {
+    @apply text-emerald-400;
+  }
+
+  .glass {
+    @apply bg-stone-900/95;
+    @apply backdrop-blur-sm border-b border-[rgb(var(--border))];
+  }
+
+  .tab-active {
+    @apply bg-emerald-600 text-white shadow-sm;
+  }
+
+  .tab-inactive {
+    @apply text-[rgb(var(--text-secondary))] hover:bg-stone-800;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-stone-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-stone-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-stone-600;
+}
