@@ -187,3 +187,68 @@ def get_dashboard_data():
         'composition': composition_data,
         'trends': trend_data
     }
+
+def get_chat_response(user_message, history=[]):
+    """
+    Generates chatbot response using Gemini API.
+    Args:
+        user_message: User's question
+        history: List of previous messages [{'role': 'user'/'assistant', 'content': '...'}]
+    Returns:
+        AI response string
+    """
+    api_key = os.getenv("GEMINI_API_KEY")
+    
+    if not api_key:
+        return "⚠️ API key not configured. Please contact support."
+    
+    try:
+        print(f"[DEBUG] Chat request: {user_message}")
+        genai.configure(api_key=api_key)
+        
+        model = genai.GenerativeModel('gemini-flash-latest')
+        
+        # System prompt with waste management expertise
+        system_prompt = """You are WasteBot 🤖, an expert AI assistant for waste management in India.
+
+Your expertise includes:
+- Waste classification (plastic, paper, metal, glass, organic, e-waste, hazardous)
+- Recycling guidelines and local regulations
+- Contamination prevention and cleaning tips
+- Composting and waste reduction strategies
+- Indian waste management policies and initiatives
+- Proper disposal methods for different materials
+
+Guidelines for responses:
+- Be concise (2-4 sentences maximum)
+- Use emojis to make responses engaging
+- Provide actionable, practical advice
+- Reference Indian context when relevant (e.g., Swachh Bharat Mission)
+- If unsure, suggest contacting local municipality or waste management authority
+- Be friendly and encouraging about sustainable practices
+
+Remember: Your goal is to help Indians manage waste better and promote recycling!"""
+        
+        # Build conversation context with history
+        full_prompt = system_prompt + "\n\n"
+        
+        # Include last 5 messages for context (to avoid token limits)
+        for msg in history[-5:]:
+            role = "User" if msg['role'] == 'user' else "Assistant"
+            full_prompt += f"{role}: {msg['content']}\n"
+        
+        full_prompt += f"User: {user_message}\nAssistant:"
+        
+        print(f"[DEBUG] Sending chat request to Gemini...")
+        response = model.generate_content(full_prompt)
+        print(f"[DEBUG] Chat response received")
+        
+        return response.text.strip()
+        
+    except Exception as e:
+        error_msg = str(e)
+        print(f"[ERROR] Chat error: {error_msg}")
+        
+        # Friendly error message
+        return "⚠️ I'm having trouble connecting right now. Please try again in a moment!"
+

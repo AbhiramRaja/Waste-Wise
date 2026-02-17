@@ -1,0 +1,53 @@
+{
+  "listings": [
+    {
+      "id": "64c535e1-f59b-404f-8afe-2d42631216e0",
+      "recycler_name": "GreenCycle Mumbai",
+      "material_type": "PET",
+      "purity_grade": "Food-Grade",
+      "volume_tons": 250,
+      "available_date": "2026-03-15",
+      "region": "Mumbai",
+      "price_per_ton": 45000,
+      "status": "available",
+      "created_at": "2026-02-18T03:29:42.574832"
+    },
+    {
+      "id": "7af67e30-5e74-4d8d-97b6-794054a07932",
+      "recycler_name": "Delhi Waste Solutions",
+      "material_type": "HDPE",
+      "purity_grade": "Industrial",
+      "volume_tons": 120,
+      "available_date": "2026-03-01",
+      "region": "Delhi",
+      "price_per_ton": 38000,
+      "status": "available",
+      "created_at": "2026-02-18T03:29:42.574862"
+    },
+    {
+      "id": "79abe184-556c-49a1-a97f-8b3b20a04c8e",
+      "recycler_name": "Bangalore EcoHub",
+      "material_type": "Aluminum",
+      "purity_grade": "Standard",
+      "volume_tons": 50,
+      "available_date": "2026-02-28",
+      "region": "Bangalore",
+      "price_per_ton": 110000,
+      "status": "available",
+      "created_at": "2026-02-18T03:29:42.574879"
+    },
+    {
+      "id": "c04f8bb6-7a0f-4b59-a91c-edba234a4e3e",
+      "recycler_name": "Chennai PureRecycle",
+      "material_type": "PET",
+      "purity_grade": "Food-Grade",
+      "volume_tons": 300,
+      "available_date": "2026-04-01",
+      "region": "Chennai",
+      "price_per_ton": 46000,
+      "status": "available",
+      "created_at": "2026-02-18T03:29:42.574884"
+    }
+  ],
+  "contracts": []
+}

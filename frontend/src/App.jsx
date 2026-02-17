@@ -5,6 +5,10 @@ import CityInsights from './pages/CityInsights'
 import Learn from './pages/Learn'
 import WasteDatabase from './pages/WasteDatabase'
 import ConveyorSimulation from './pages/ConveyorSimulation'
+import ChatBot from './components/ChatBot'
+import SupplyForecast from './pages/SupplyForecast'
+import RecyclerDashboard from './pages/RecyclerDashboard'
+import ManufacturerDashboard from './pages/ManufacturerDashboard'
 
 function NavBar() {
     const location = useLocation()
@@ -14,7 +18,10 @@ function NavBar() {
         { path: '/insights', label: 'City Insights', icon: '📊' },
         { path: '/learn', label: 'Learn', icon: '📚' },
         { path: '/database', label: 'Database', icon: '🗄️' },
-        { path: '/simulation', label: 'Simulation', icon: '🏭' }
+        { path: '/simulation', label: 'Simulation', icon: '🏭' },
+        { path: '/supply-forecast', label: 'Forecast', icon: '📈' },
+        { path: '/recycler', label: 'Sell Materials', icon: '♻️' },
+        { path: '/manufacturer', label: 'Buy Materials', icon: '📦' }
     ]
 
     return (
@@ -90,8 +97,12 @@ function App() {
                     <Route path="/learn" element={<Learn />} />
                     <Route path="/database" element={<WasteDatabase />} />
                     <Route path="/simulation" element={<ConveyorSimulation />} />
+                    <Route path="/supply-forecast" element={<SupplyForecast />} />
+                    <Route path="/recycler" element={<RecyclerDashboard />} />
+                    <Route path="/manufacturer" element={<ManufacturerDashboard />} />
                 </Routes>
                 <LiveTicker />
+                <ChatBot />
             </div>
         </Router>
     )
