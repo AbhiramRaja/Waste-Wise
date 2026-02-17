@@ -283,6 +283,50 @@ export default function Scanner() {
                                     </div>
                                 </div>
 
+                                {/* Contamination Status */}
+                                {classification.contaminated !== undefined && (
+                                    <div className={`border p-6 rounded-lg ${classification.contaminated
+                                            ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+                                            : 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+                                        }`}>
+                                        <h3 className={`text-sm font-medium uppercase tracking-wide mb-2 ${classification.contaminated
+                                                ? 'text-red-700 dark:text-red-400'
+                                                : 'text-green-700 dark:text-green-400'
+                                            }`}>
+                                            Contamination Status
+                                        </h3>
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <span className="text-3xl">
+                                                {classification.contaminated ? '⚠️' : '✅'}
+                                            </span>
+                                            <p className={`text-2xl font-semibold ${classification.contaminated
+                                                    ? 'text-red-900 dark:text-red-300'
+                                                    : 'text-green-900 dark:text-green-300'
+                                                }`}>
+                                                {classification.contaminated ? 'Contaminated' : 'Clean'}
+                                            </p>
+                                        </div>
+                                        {classification.contaminated && classification.contaminant && classification.contaminant !== 'None' && (
+                                            <div className="bg-white dark:bg-stone-900 border border-red-200 dark:border-red-700 p-4 rounded-lg">
+                                                <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">
+                                                    Detected Contaminant:
+                                                </p>
+                                                <p className="text-sm text-red-700 dark:text-red-400">
+                                                    {classification.contaminant}
+                                                </p>
+                                                <p className="text-xs text-red-600 dark:text-red-500 mt-3 italic">
+                                                    ⚠️ Please clean this item before recycling to avoid contaminating the entire batch.
+                                                </p>
+                                            </div>
+                                        )}
+                                        {!classification.contaminated && (
+                                            <p className="text-sm text-green-700 dark:text-green-400">
+                                                This item appears clean and ready for recycling! ♻️
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
                                 {/* Disposal Guidance */}
                                 {guidance && (
                                     <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 p-6 rounded-lg">
