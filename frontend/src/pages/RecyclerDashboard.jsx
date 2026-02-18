@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { motion } from 'framer-motion'
 
 export default function RecyclerDashboard() {
+    const location = useLocation()
+    const navigate = useNavigate()
     const [listings, setListings] = useState([])
     const [loading, setLoading] = useState(true)
     const [formData, setFormData] = useState({
@@ -19,7 +22,29 @@ export default function RecyclerDashboard() {
 
     useEffect(() => {
         fetchListings()
-    }, [])
+
+        // Check for pre-filled data from Scanner
+        if (location.state) {
+            const { material, grade, price } = location.state
+
+            // Map Grade A/B/C to Industry Terms
+            let mappedGrade = 'Standard'
+            if (grade === 'A') mappedGrade = 'Food-Grade'
+            if (grade === 'B') mappedGrade = 'Standard'
+            if (grade === 'C') mappedGrade = 'Industrial'
+
+            setFormData(prev => ({
+                ...prev,
+                material_type: material || 'PET',
+                purity_grade: mappedGrade,
+                price_per_ton: price || '',
+                volume_tons: '' // User still needs to input volume
+            }))
+
+            // Clear state to prevent re-filling on refresh
+            window.history.replaceState({}, document.title)
+        }
+    }, [location.state])
 
     const fetchListings = async () => {
         try {

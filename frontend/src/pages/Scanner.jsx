@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 const DEMO_EXAMPLES = [
     {
         name: 'Plastic Bottle',
         class: 'Plastic',
         confidence: 0.973,
+        grade: 'A',
+        grade_reason: 'Clean PET, no cap',
+        estimated_value: 25,
         guidance: '• **Recyclable**: Rinse the bottle and remove the cap\n• Place in blue recycling bin\n• Caps can stay on in most facilities',
         tips: ['Rinse thoroughly before recycling', 'Remove labels if possible', 'Crush to save space']
     },
@@ -14,6 +18,9 @@ const DEMO_EXAMPLES = [
         name: 'Banana Peel',
         class: 'Organic',
         confidence: 0.945,
+        grade: 'C',
+        grade_reason: 'Organic compost',
+        estimated_value: 0,
         guidance: '• **Compostable**: Perfect for your compost bin\n• Breaks down in 2-4 weeks\n• Rich in potassium for soil',
         tips: ['Great for composting', 'Can be used as fertilizer', 'Avoid if treated with pesticides']
     },
@@ -21,6 +28,9 @@ const DEMO_EXAMPLES = [
         name: 'Battery',
         class: 'Hazardous',
         confidence: 0.891,
+        grade: 'C',
+        grade_reason: 'Hazardous material',
+        estimated_value: 0,
         guidance: '• **Hazardous Waste**: Never throw in regular trash\n• Take to designated collection points\n• Contains toxic materials',
         tips: ['Store in cool, dry place until disposal', 'Tape terminals to prevent fires', 'Check for local drop-off locations']
     },
@@ -28,6 +38,9 @@ const DEMO_EXAMPLES = [
         name: 'Cardboard Box',
         class: 'Paper',
         confidence: 0.967,
+        grade: 'B',
+        grade_reason: 'Dry, lightly used',
+        estimated_value: 12,
         guidance: '• **Recyclable**: Flatten and place in recycling\n• Remove tape and labels\n• Keep dry for best recycling',
         tips: ['Flatten to save space', 'Remove all packing materials', 'Keep dry - wet cardboard contaminates batches']
     },
@@ -35,12 +48,16 @@ const DEMO_EXAMPLES = [
         name: 'Old Phone',
         class: 'E-waste',
         confidence: 0.928,
+        grade: 'A',
+        grade_reason: 'High recovery value',
+        estimated_value: 450,
         guidance: '• **E-Waste**: Contains valuable materials\n• Take to electronics recycling center\n• Wipe data before disposal',
         tips: ['Erase all personal data first', 'Remove SIM card', 'Consider donation if still functional']
     }
 ]
 
 export default function Scanner() {
+    const navigate = useNavigate()
     const [selectedImage, setSelectedImage] = useState(null)
     const [imagePreview, setImagePreview] = useState(null)
     const [classification, setClassification] = useState(null)
@@ -137,7 +154,14 @@ export default function Scanner() {
 
     const handleDemo = () => {
         const demo = DEMO_EXAMPLES[demoIndex]
-        setClassification({ class: demo.class, confidence: demo.confidence })
+        setClassification({
+            class: demo.class,
+            confidence: demo.confidence,
+            grade: demo.grade,
+            grade_reason: demo.grade_reason,
+            estimated_value: demo.estimated_value,
+            contaminated: false
+        })
         setGuidance(demo.guidance)
         setImagePreview(null)
         setSelectedImage(null)
@@ -286,12 +310,12 @@ export default function Scanner() {
                                 {/* Contamination Status */}
                                 {classification.contaminated !== undefined && (
                                     <div className={`border p-6 rounded-lg ${classification.contaminated
-                                            ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
-                                            : 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+                                        ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800'
+                                        : 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
                                         }`}>
                                         <h3 className={`text-sm font-medium uppercase tracking-wide mb-2 ${classification.contaminated
-                                                ? 'text-red-700 dark:text-red-400'
-                                                : 'text-green-700 dark:text-green-400'
+                                            ? 'text-red-700 dark:text-red-400'
+                                            : 'text-green-700 dark:text-green-400'
                                             }`}>
                                             Contamination Status
                                         </h3>
@@ -300,8 +324,8 @@ export default function Scanner() {
                                                 {classification.contaminated ? '⚠️' : '✅'}
                                             </span>
                                             <p className={`text-2xl font-semibold ${classification.contaminated
-                                                    ? 'text-red-900 dark:text-red-300'
-                                                    : 'text-green-900 dark:text-green-300'
+                                                ? 'text-red-900 dark:text-red-300'
+                                                : 'text-green-900 dark:text-green-300'
                                                 }`}>
                                                 {classification.contaminated ? 'Contaminated' : 'Clean'}
                                             </p>
@@ -326,7 +350,43 @@ export default function Scanner() {
                                         )}
                                     </div>
                                 )}
+                                {/* Quality Grade & Value */}
+                                {classification.grade && (
+                                    <div className="bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 p-6 rounded-lg">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <h3 className="text-sm text-purple-700 dark:text-purple-400 mb-1 font-medium uppercase tracking-wide">Quality Grade</h3>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-4xl font-bold text-purple-900 dark:text-purple-300">{classification.grade}</span>
+                                                    <span className="text-sm text-purple-700 dark:text-purple-400">{classification.grade_reason}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm text-purple-700 dark:text-purple-400 mb-1 font-medium uppercase tracking-wide">Est. Market Value</h3>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-4xl font-bold text-purple-900 dark:text-purple-300">₹{classification.estimated_value}</span>
+                                                    <span className="text-sm text-purple-700 dark:text-purple-400">/kg</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-3 text-xs text-purple-600 dark:text-purple-400">
+                                            *Based on current market rates for {classification.class} in your region.
+                                        </div>
 
+                                        <button
+                                            onClick={() => navigate('/recycler', {
+                                                state: {
+                                                    material: classification.class,
+                                                    grade: classification.grade,
+                                                    price: classification.estimated_value
+                                                }
+                                            })}
+                                            className="w-full mt-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <span>💰</span> List for Sale (Verification: {classification.confidence * 100 > 90 ? 'Verified' : 'Pending'})
+                                        </button>
+                                    </div>
+                                )}
                                 {/* Disposal Guidance */}
                                 {guidance && (
                                     <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 p-6 rounded-lg">

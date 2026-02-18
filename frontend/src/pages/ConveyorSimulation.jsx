@@ -128,27 +128,7 @@ const ConveyorSimulation = () => {
         return item;
     };
 
-    // Inject contaminant (creates contaminated item)
-    const injectContaminant = () => {
-        const recyclable = RECYCLABLES[Math.floor(Math.random() * RECYCLABLES.length)];
-        const contaminant = CONTAMINANTS[Math.floor(Math.random() * CONTAMINANTS.length)];
 
-        const contaminatedItem = {
-            id: Date.now() + Math.random(),
-            ...recyclable,
-            x: 0,
-            y: MAIN_BELT_Y,
-            velocity: OBJECT_SPEED,
-            state: 'moving',
-            contaminated: true,
-            contaminant: contaminant,
-            inspectionStartTime: null,
-            canBeCleaned: Math.random() > 0.3 // 70% chance it can be cleaned
-        };
-
-        setMainBeltObjects(prev => [...prev, contaminatedItem]);
-        addEvent(`⚠️ Contaminated ${recyclable.name} detected (${contaminant.name})`);
-    };
 
     // Add event to log
     const addEvent = (message) => {
@@ -555,13 +535,7 @@ const ConveyorSimulation = () => {
                             </button>
                         )}
 
-                        <button
-                            onClick={injectContaminant}
-                            className="btn btn-inject"
-                            disabled={!isRunning}
-                        >
-                            ⚠️ Inject Contaminant
-                        </button>
+
 
                         <button onClick={handleReset} className="btn btn-reset">
                             🔄 Reset

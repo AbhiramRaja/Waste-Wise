@@ -47,7 +47,68 @@
       "price_per_ton": 46000,
       "status": "available",
       "created_at": "2026-02-18T03:29:42.574884"
+    },
+    {
+      "id": "3bd65f84-9e71-4966-b51a-fd5ae8311850",
+      "recycler_name": "GreenCycle Mumbai",
+      "material_type": "PET",
+      "purity_grade": "Standard",
+      "volume_tons": 100.0,
+      "available_date": "2026-02-17",
+      "region": "Mumbai",
+      "price_per_ton": 1000000.0,
+      "status": "locked",
+      "created_at": "2026-02-18T03:49:10.874557"
+    },
+    {
+      "id": "cd4965aa-b9b4-4827-8880-3da2fb03dde4",
+      "recycler_name": "GreenCycle Mumbai",
+      "material_type": "Steel",
+      "purity_grade": "Standard",
+      "volume_tons": 1000.0,
+      "available_date": "2026-02-18",
+      "region": "Mumbai",
+      "price_per_ton": 696969.0,
+      "status": "locked",
+      "created_at": "2026-02-18T09:10:09.310676"
+    },
+    {
+      "id": "c691266f-9eff-4313-8697-bd7d466f923d",
+      "recycler_name": "GreenCycle Mumbai",
+      "material_type": "PET",
+      "purity_grade": "Standard",
+      "volume_tons": 100.0,
+      "available_date": "2026-02-18",
+      "region": "Mumbai",
+      "price_per_ton": 10.0,
+      "status": "available",
+      "created_at": "2026-02-18T17:11:27.657732"
     }
   ],
-  "contracts": []
+  "contracts": [
+    {
+      "id": "343d8864-1298-4d1e-b9b3-eaa5f50d3abe",
+      "listing_id": "3bd65f84-9e71-4966-b51a-fd5ae8311850",
+      "manufacturer_name": "Packaging Corp India",
+      "recycler_name": "GreenCycle Mumbai",
+      "material_type": "PET",
+      "volume_tons": 100.0,
+      "price_per_ton": 1000000.0,
+      "total_value": 100000000.0,
+      "contract_date": "2026-02-18T03:49:20.210366",
+      "status": "confirmed"
+    },
+    {
+      "id": "15cff287-c6a5-47c0-ab3e-de54029acbaf",
+      "listing_id": "cd4965aa-b9b4-4827-8880-3da2fb03dde4",
+      "manufacturer_name": "Packaging Corp India",
+      "recycler_name": "GreenCycle Mumbai",
+      "material_type": "Steel",
+      "volume_tons": 1000.0,
+      "price_per_ton": 696969.0,
+      "total_value": 696969000.0,
+      "contract_date": "2026-02-18T09:10:18.298241",
+      "status": "confirmed"
+    }
+  ]
 }

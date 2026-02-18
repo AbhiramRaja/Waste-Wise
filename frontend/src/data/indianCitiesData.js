@@ -149,17 +149,20 @@ function generateCityData(city, state) {
         co2Saved: random(3, 18)
     }
 
-    // Weekly data with variation
+    // Weekly data with realistic city-level tonnage (Thousands of Tons)
+    // Scale factor: Metro ~8000-12000 TPD, Tier1 ~3000-6000 TPD, Tier2 ~1000-2500 TPD
+    const scaleFactor = tier === 'metro' ? 20 : tier === 'tier1' ? 8 : 3
+
     const weeklyData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
-        const baseMultiplier = day === 'Sat' || day === 'Sun' ? 0.7 : 1
+        const baseMultiplier = day === 'Sat' || day === 'Sun' ? 0.9 : 1.1 // More industrial waste on weekdays
         return {
             day,
-            Recyclable: Math.floor(random(300, 600) * baseMultiplier),
-            Compostable: Math.floor(random(250, 500) * baseMultiplier),
-            Landfill: Math.floor(random(150, 350) * baseMultiplier),
-            Hazardous: Math.floor(random(15, 50) * baseMultiplier),
-            EWaste: Math.floor(random(10, 40) * baseMultiplier),
-            Special: Math.floor(random(5, 25) * baseMultiplier)
+            Recyclable: Math.floor(random(150, 300) * scaleFactor * baseMultiplier),
+            Compostable: Math.floor(random(200, 400) * scaleFactor * baseMultiplier),
+            Landfill: Math.floor(random(100, 250) * scaleFactor * baseMultiplier),
+            Hazardous: Math.floor(random(5, 15) * scaleFactor * baseMultiplier),
+            EWaste: Math.floor(random(3, 10) * scaleFactor * baseMultiplier),
+            Special: Math.floor(random(2, 8) * scaleFactor * baseMultiplier)
         }
     })
 

@@ -1,0 +1,43 @@
+_id,City Name,Zone Name,Ward name,Number of HH,Waste quantity (Tonnes Per Day),No. of Households with waste segregation
+12,Pune,,Deccan Gymkhana-Model Colony,101222,53.87,101222
+2,Pune,,Kharadi-Chandan Nagar,101503,29.28,101503
+8,Pune,,Koregain Park-Ghorpadi,102118,36.49,102118
+14,Pune,,Rambaugh Colony-Shivtirth Nagar,102656,14.64,102656
+23,Pune,,Karvenagar,102891,37.05,102891
+39,Pune,Bibwewadi,Salibary Park_ Mukund Nagar,104156,56.01,104156
+3,Pune,,Wadgaon-Sheri-Kalyani nagar,107795,23.67,107795
+38,Pune,,Lohiya Nagar-Kashewadi,107936,18.46,107936
+1,Pune,Nagar Road-Wadgaon Sheri,Viman Nagar,109555,27.21,109555
+27,Pune,,Mohammad Wadi-Kausar Bhugh,110633,48.43,110633
+32,Pune,,Kondhwa Budruk-Yewalewadi,110751,55.21,110751
+25,Pune,Hadapsar Mundhwa,Mundhwa-Magarpatta City,112268,26.99,112268
+34,Pune,,Kasba Peth-Somwarpeth,113217,29.98,113217
+21,Pune,,Suncity-Hingne Khurd,119313,29.11,119313
+40,Pune,,Bibwewadi-Bibwewadi Gaothan,124583,60.03,124583
+41,Pune,,Upper Indra Nagar,125894,35.99,125894
+10,Pune,,Baner-Balewadi-pashan,126086,41.86,126086
+4,Pune,Yerwada kalas Dhanori,Kalas-Dhanori,151809,36.96,151809
+19,Pune,Sinhagad Road,Janta Vasahat-Duttawadi,15753,23.57,15753
+42,Pune,Ward 42,"Kondhwa-Yelwalewadi,Dhankawadi-Sahakanagar,Hadapsar-Mundhwa,Sinhagad Road,Warje-Karvenagar.",173633,66.53,173633
+26,Pune,,Hadapsar Gaothan-Satav Wadi,187584,25.44,187584
+9,Pune,Aundh Baner,Aundh-Bopodi,229155,28.54,229155
+33,Pune,Kasba Vishrambaugh Wada,Shaniwar Peth-Sadashiv Peth,260669,39.5,260669
+30,Pune,,Kondhwa Khurd-Mittha Nagar,27378,45.67,27378
+24,Pune,,Warje-Malwadi,35058,39.14,35058
+6,Pune,,Yerawada,35582,22.35,35582
+37,Pune,,khadakmal Ali-Mahatma Phule Peth,54172,26.71,54172
+17,Pune,,Dhankawadi-Ambegaon Pathar,59265,44,59265
+18,Pune,,Dutta Nagar-Katraj Gaothan,62319,44.73,62319
+11,Pune,Shivaji Nagar-Ghole Road,Pune University-Wakdewadi,63866,49.79,63866
+29,Pune,,Wanawadi,69868,43.73,69868
+16,Pune,Dhanawadi Sahakarnagar,Sahakarnagar-Padmavati,71929,49.92,71929
+36,Pune,Bhawadi Peth,Rasta Peth-Ravivar Peth,82820,31.42,82820
+28,Pune,Wanawadi Ramtekdi,Ramtekdi-Sasane Nagar,83988,22.74,83988
+35,Pune,,Navi Peth-Parvati,86159,46.32,86159
+15,Pune,,Mayur Colony-Dahanukar Colony,87673,39.69,87673
+7,Pune,Dhole Patil Road,Tadiwala Road-Sasoon Hospital,90488,39.18,90488
+31,Pune,Kondhwa Yewalewadi,Balaji Nagar-Rajiv Gandhi Nagar,92709,35.74,92709
+5,Pune,,Phule Nagar-Nagpur Chwal,94845,37.54,94845
+22,Pune,Warje karve Nagar,Erandawana-Happy Colony,96503,43.47,96503
+20,Pune,,Wadgaon Dhayri-Wadgaon Budruk,98696,44.74,98696
+13,Pune,Kothrud Bavdhan,Bavdhan-Kothrud Depot,99729,40.73,99729

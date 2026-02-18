@@ -18,6 +18,105 @@ class WasteSupplyForecaster:
         self.material_types = ['PET', 'HDPE', 'PP', 'Aluminum', 'Steel', 'Cardboard', 'Paper']
         self.regions = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Hyderabad']
         
+    def load_real_data(self):
+        """
+        Load real historical data (2019-2023) from CSV and interpolate to daily.
+        """
+        print(f"[ML] Loading real data from CSV...")
+        try:
+            csv_path = os.path.join(os.path.dirname(__file__), 'data', 'Waste_Management_and_Recycling_India.csv')
+            if not os.path.exists(csv_path):
+                print("[ML] Single real data CSV not found, generating synthetic.")
+                return self.generate_synthetic_data()
+                
+            df = pd.read_csv(csv_path)
+            df.columns = [c.strip() for c in df.columns]
+            
+            data = []
+            
+            # Process each city as a "region"
+            # We will map specific waste types to our material types
+            type_map = {
+                'Plastic': ['PET', 'HDPE', 'PP'], # Split plastic into 3 types
+                'Organic': ['Paper'], # Use Organic trend as proxy for Paper
+                'E-Waste': ['Aluminum', 'Steel'], # Metals in E-waste
+                'Construction': ['Cardboard'], # Use Construction trend as proxy for Cardboard
+                'Hazardous': []
+            }
+            
+            # Only process cities that are in our target list, or expand list?
+            # Let's expand regions to include all cities in CSV if possible, or just the top ones.
+            # Forecaster init has self.regions. Let's update that dynamically or filter.
+            # Using specific cities for now to match UI dropdowns roughly
+            target_cities = df['City/District'].unique()
+            self.regions = list(target_cities) # Update regions to match CSV
+            
+            for city in self.regions:
+                city_df = df[df['City/District'] == city]
+                
+                # We need to interpolate yearly points to daily
+                # Years: 2019, 2020, 2021, 2022, 2023
+                
+                for waste_type, materials in type_map.items():
+                    if not materials: continue
+                    
+                    type_rows = city_df[city_df['Waste Type'] == waste_type].sort_values('Year')
+                    if type_rows.empty: continue
+                    
+                    # Get yearly TPD
+                    yearly_tpd = type_rows.set_index('Year')['Waste Generated (Tons/Day)'].to_dict()
+                    
+                    start_date = datetime(2019, 1, 1)
+                    end_date = datetime(2023, 12, 31)
+                    delta_days = (end_date - start_date).days
+                    
+                    for i in range(delta_days + 1):
+                        current_date = start_date + timedelta(days=i)
+                        year = current_date.year
+                        month = current_date.month
+                        day_of_week = current_date.weekday()
+                        
+                        # Get baseline TPD for this year (interpolate ideally, but step is okay for now)
+                        # Or linear interpolation between years
+                        val_curr = yearly_tpd.get(year, 0)
+                        val_next = yearly_tpd.get(year + 1, val_curr)
+                        
+                        # Fraction of year passed
+                        day_of_year = current_date.timetuple().tm_yday
+                        alpha = day_of_year / 365.0
+                        interpolated_tpd = val_curr + (val_next - val_curr) * alpha
+                        
+                        # Seasonality & Noise
+                        weekly_factor = 1.1 if day_of_week >= 5 else 0.95
+                        seasonal_factor = 1.0 + 0.1 * np.sin(2 * np.pi * day_of_year / 365) # Simple wave
+                        
+                        daily_total_material = interpolated_tpd * weekly_factor * seasonal_factor
+                        
+                        # Distribute among sub-materials (e.g. Plastic -> PET, HDPE, PP)
+                        # Assume even split for simplicity or ratios
+                        split_ratio = 1.0 / len(materials)
+                        
+                        for mat in materials:
+                            vol = daily_total_material * split_ratio
+                            # Add noise
+                            vol += np.random.normal(0, vol * 0.05)
+                            
+                            data.append({
+                                'date': current_date.strftime('%Y-%m-%d'),
+                                'day_of_week': day_of_week,
+                                'month': month,
+                                'region': city,
+                                'material_type': mat,
+                                'volume_tons': round(max(0, vol), 2)
+                            })
+                            
+            print(f"[ML] Loaded and interpolated {len(data)} real data points.")
+            return pd.DataFrame(data)
+            
+        except Exception as e:
+            print(f"[ML] Error loading real data: {e}")
+            return self.generate_synthetic_data()
+
     def generate_synthetic_data(self, days=180):
         """
         Generate 6 months of synthetic waste collection data.
@@ -34,26 +133,30 @@ class WasteSupplyForecaster:
             month = current_date.month
             
             for region in self.regions:
+                # Fallback to default material types if not set?
+                # Actually self.regions matches UI, so we must support all self.material_types
+                pass
                 for material in self.material_types:
-                    # Base volume with regional variation
+                    # Base volume with realistic city-scale data (approx. Tons Per Day for a major metro)
+                    # Based on ~10% plastic composition of 10,000+ TPD total waste
                     base_volume = {
-                        'PET': 50,
-                        'HDPE': 30,
-                        'PP': 25,
-                        'Aluminum': 15,
-                        'Steel': 20,
-                        'Cardboard': 40,
-                        'Paper': 35
+                        'PET': 650,      # ~6-7% of total waste
+                        'HDPE': 400,     # ~4%
+                        'PP': 350,       # ~3.5%
+                        'Aluminum': 150, # ~1.5%
+                        'Steel': 200,    # ~2%
+                        'Cardboard': 850,# ~8.5%
+                        'Paper': 700     # ~7%
                     }[material]
                     
-                    # Regional multipliers
+                    # Regional multipliers based on population/industrial activity
                     region_multiplier = {
-                        'Mumbai': 1.5,
-                        'Delhi': 1.4,
-                        'Bangalore': 1.3,
-                        'Chennai': 1.1,
-                        'Kolkata': 1.0,
-                        'Hyderabad': 1.2
+                        'Mumbai': 1.8,    # ~11,000+ TPD Total
+                        'Delhi': 1.9,     # ~11,500+ TPD Total
+                        'Bangalore': 1.2, # ~5,000 TPD
+                        'Chennai': 1.1,   # ~5,000 TPD
+                        'Kolkata': 1.0,   # ~4,500 TPD
+                        'Hyderabad': 1.3  # ~6,000 TPD
                     }[region]
                     
                     # Weekly pattern (more waste on weekends)
@@ -225,15 +328,15 @@ print("[ML] Initializing Waste Supply Forecaster...")
 forecaster = WasteSupplyForecaster()
 
 # Generate and train if models don't exist
-if not os.path.exists('backend/models'):
-    print("[ML] No existing models found. Training new models...")
-    df = forecaster.generate_synthetic_data(days=180)
+if not os.path.exists('backend/models') or True: # Force retrain for now to pick up new CSV data
+    print("[ML] Training new models with Real Data...")
+    df = forecaster.load_real_data()
     forecaster.train_models(df)
     forecaster.save_models()
     
     # Save sample data for reference
-    df.to_json('backend/data/synthetic_waste_data.json', orient='records', indent=2)
-    print("[ML] Synthetic data saved to backend/data/synthetic_waste_data.json")
+    df.to_json('backend/data/training_waste_data.json', orient='records', indent=2)
+    print("[ML] Training data saved to backend/data/training_waste_data.json")
 else:
     print("[ML] Loading existing models...")
     forecaster.load_models()

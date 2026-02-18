@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import axios from 'axios'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { INDIAN_STATES, CITIES_BY_STATE, CITY_DATA } from '../data/indianCitiesData'
 
@@ -66,11 +67,97 @@ function generateCollectionPoints(city) {
 }
 
 export default function CityInsights() {
-    const [selectedState, setSelectedState] = useState('Tamil Nadu')
-    const [selectedCity, setSelectedCity] = useState('Chennai')
+    const [selectedState, setSelectedState] = useState('Maharashtra')
+    const [selectedCity, setSelectedCity] = useState('Pune')
+    const [cityData, setCityData] = useState(null)
+    const [isRealData, setIsRealData] = useState(false)
+    const [loading, setLoading] = useState(false)
 
+    // Fallback static data
     const cityKey = `${selectedCity}, ${selectedState}`
-    const data = CITY_DATA[cityKey]
+    const staticData = CITY_DATA[cityKey] || CITY_DATA['Pune, Maharashtra']
+
+    // Use either fetched real data or static data (with simulation)
+    const displayData = cityData || staticData
+
+    // Live update ref for clean interval clearing
+    const updateInterval = useRef(null)
+
+    // Effect to fetch real data or start simulation
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true)
+            try {
+                // Try to get real data from backend
+                const res = await axios.get(`/api/city-data?city=${selectedCity}&state=${selectedState}`)
+                console.log("Real data found:", res.data)
+                setCityData(res.data)
+                setIsRealData(true)
+
+                // Clear existing interval
+                if (updateInterval.current) clearInterval(updateInterval.current)
+
+                // Start Simulation for ALL cities (Real or Mock)
+                // User wants TOTAL WASTE (which uses monthlyScans property) to strictly INCREASE
+                updateInterval.current = setInterval(() => {
+                    setCityData(prev => {
+                        const base = prev || res.data
+
+                        // Strict INCREASE: 2 to 5 units every interval
+                        const increase = Math.floor(Math.random() * 4) + 2
+
+                        return {
+                            ...base,
+                            monthlyScans: base.monthlyScans + increase,
+                            co2Saved: base.co2Saved + (increase * 0.35), // Proportional CO2 increase
+                            activeRoutes: base.activeRoutes,
+                            recyclingRate: base.recyclingRate,
+                            deltas: base.deltas,
+                            weeklyData: base.weeklyData,
+                            composition: base.composition
+                        }
+                    })
+                }, 4000) // Update every 4 seconds as requested
+
+            } catch (err) {
+                // Fallback to static data with simulation
+                console.log("Using static/simulated data")
+                setCityData(null) // Reset to force use of staticData
+                setIsRealData(false)
+
+                if (updateInterval.current) clearInterval(updateInterval.current)
+
+                updateInterval.current = setInterval(() => {
+                    setCityData(prev => {
+                        const base = prev || staticData
+
+                        // Strict INCREASE for Mock Data too
+                        const increase = Math.floor(Math.random() * 4) + 2
+
+                        return {
+                            ...base,
+                            monthlyScans: base.monthlyScans + increase,
+                            co2Saved: base.co2Saved + (increase * 0.5),
+                            activeRoutes: base.activeRoutes,
+                            recyclingRate: base.recyclingRate,
+                            deltas: base.deltas,
+                            weeklyData: base.weeklyData,
+                            composition: base.composition
+                        }
+                    })
+                }, 4000)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchData()
+
+        return () => {
+            if (updateInterval.current) clearInterval(updateInterval.current)
+        }
+    }, [selectedCity, selectedState])
+
     const collectionPoints = generateCollectionPoints(selectedCity)
     const cityCenter = CITY_COORDINATES[selectedCity] || [28.6139, 77.2090]
 
@@ -119,32 +206,41 @@ export default function CityInsights() {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="card p-6">
+                <div className="card p-6 relative overflow-hidden">
                     <div className="text-sm text-[rgb(var(--text-secondary))] mb-1">Recycling Rate</div>
-                    <div className="text-3xl font-bold text-emerald-400">{data.recyclingRate}%</div>
-                    <div className={`text-xs mt-1 ${data.deltas.recyclingRate > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {data.deltas.recyclingRate > 0 ? '↑' : '↓'} {Math.abs(data.deltas.recyclingRate)}% vs last month
+                    <div className="text-3xl font-bold text-emerald-400">{displayData?.recyclingRate}%</div>
+                    <div className={`text-xs mt-1 ${displayData?.deltas?.recyclingRate > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {displayData?.deltas?.recyclingRate > 0 ? '↑' : '↓'} {Math.abs(displayData?.deltas?.recyclingRate)}% vs last month
                     </div>
+                    {/* Live Indicator */}
+                    {!isRealData && <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>}
                 </div>
-                <div className="card p-6">
-                    <div className="text-sm text-[rgb(var(--text-secondary))] mb-1">Monthly Scans</div>
-                    <div className="text-3xl font-bold">{data.monthlyScans.toLocaleString()}</div>
-                    <div className={`text-xs mt-1 ${data.deltas.monthlyScans > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {data.deltas.monthlyScans > 0 ? '↑' : '↓'} {Math.abs(data.deltas.monthlyScans)}% vs last month
+                <div className="card p-6 relative overflow-hidden">
+                    <div className="text-sm text-[rgb(var(--text-secondary))] mb-1">
+                        {isRealData ? 'Total Waste (Tons)' : 'Monthly Scans'}
                     </div>
+                    <div className="text-3xl font-bold">{Math.floor(displayData?.monthlyScans).toLocaleString()}</div>
+                    <div className={`text-xs mt-1 ${displayData?.deltas?.monthlyScans > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {displayData?.deltas?.monthlyScans > 0 ? '↑' : '↓'} {Math.abs(displayData?.deltas?.monthlyScans)}% vs last month
+                    </div>
+                    {isRealData && (
+                        <div className="absolute top-0 right-0 bg-emerald-600 text-white text-[10px] px-2 py-1 rounded-bl-lg font-bold">
+                            REAL DATA
+                        </div>
+                    )}
                 </div>
                 <div className="card p-6">
                     <div className="text-sm text-[rgb(var(--text-secondary))] mb-1">Active Routes</div>
-                    <div className="text-3xl font-bold">{data.activeRoutes}</div>
-                    <div className={`text-xs mt-1 ${data.deltas.activeRoutes === 0 ? 'text-[rgb(var(--text-secondary))]' : data.deltas.activeRoutes > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {data.deltas.activeRoutes === 0 ? '→' : data.deltas.activeRoutes > 0 ? '↑' : '↓'} {Math.abs(data.deltas.activeRoutes)} routes
+                    <div className="text-3xl font-bold">{displayData?.activeRoutes}</div>
+                    <div className={`text-xs mt-1 ${displayData?.deltas?.activeRoutes === 0 ? 'text-[rgb(var(--text-secondary))]' : displayData?.deltas?.activeRoutes > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {displayData?.deltas?.activeRoutes === 0 ? '→' : displayData?.deltas?.activeRoutes > 0 ? '↑' : '↓'} {Math.abs(displayData?.deltas?.activeRoutes)} routes
                     </div>
                 </div>
                 <div className="card p-6">
                     <div className="text-sm text-[rgb(var(--text-secondary))] mb-1">CO₂ Saved (kg)</div>
-                    <div className="text-3xl font-bold text-emerald-400">{data.co2Saved.toLocaleString()}</div>
-                    <div className={`text-xs mt-1 ${data.deltas.co2Saved > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {data.deltas.co2Saved > 0 ? '↑' : '↓'} {Math.abs(data.deltas.co2Saved)}% vs last month
+                    <div className="text-3xl font-bold text-emerald-400">{Math.floor(displayData?.co2Saved).toLocaleString()}</div>
+                    <div className={`text-xs mt-1 ${displayData?.deltas?.co2Saved > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {displayData?.deltas?.co2Saved > 0 ? '↑' : '↓'} {Math.abs(displayData?.deltas?.co2Saved)}% vs last month
                     </div>
                 </div>
             </div>
@@ -154,7 +250,7 @@ export default function CityInsights() {
                 <div className="card">
                     <h3 className="text-lg font-semibold mb-4">Weekly Sorting Breakdown</h3>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={data.weeklyData}>
+                        <BarChart data={displayData?.weeklyData}>
                             <XAxis dataKey="day" stroke="#a8a29e" />
                             <YAxis stroke="#a8a29e" />
                             <Tooltip
@@ -178,7 +274,7 @@ export default function CityInsights() {
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
-                                data={data.composition}
+                                data={displayData?.composition}
                                 cx="50%"
                                 cy="50%"
                                 innerRadius={60}
@@ -187,7 +283,7 @@ export default function CityInsights() {
                                 dataKey="value"
                                 label={(entry) => `${entry.name}: ${entry.value}%`}
                             >
-                                {data.composition.map((entry, index) => (
+                                {displayData?.composition?.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                             </Pie>
