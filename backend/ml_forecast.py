@@ -315,7 +315,19 @@ class WasteSupplyForecaster:
         """
         Load trained models from disk.
         """
-        print(f"[ML] Successfully loaded {len(self.models)} models from {path}")
+        import pickle
+        import os
+        loaded_count = 0
+        for material in self.material_types:
+            filename = os.path.join(path, f"{material}_model.pkl")
+            if os.path.exists(filename):
+                try:
+                    with open(filename, 'rb') as f:
+                        self.models[material] = pickle.load(f)
+                    loaded_count += 1
+                except Exception as e:
+                    print(f"[ML] Error loading {material} model: {e}")
+        print(f"[ML] Successfully loaded {loaded_count}/{len(self.material_types)} models from {path}")
 
 
 # Generate and train if models don't exist
