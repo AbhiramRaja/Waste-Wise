@@ -33,6 +33,10 @@ from marketplace import exchange as market
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/')
+def health_check():
+    return jsonify({"status": "active", "service": "WasteWise Backend", "message": "ML engine is warming up..."}), 200
+
 @app.route('/api/dashboard', methods=['GET'])
 def dashboard():
     """
