@@ -300,7 +300,7 @@ class WasteSupplyForecaster:
         
         return forecast
     
-    def save_models(self, path='backend/models'):
+    def save_models(self, path='models'):
         """
         Save trained models to disk.
         """
@@ -311,7 +311,7 @@ class WasteSupplyForecaster:
                 pickle.dump(model, f)
         print(f"[ML] Models saved to {path}")
     
-    def load_models(self, path='backend/models'):
+    def load_models(self, path='models'):
         """
         Load trained models from disk.
         """
@@ -328,17 +328,19 @@ print("[ML] Initializing Waste Supply Forecaster...")
 forecaster = WasteSupplyForecaster()
 
 # Generate and train if models don't exist
-if not os.path.exists('backend/models') or True: # Force retrain for now to pick up new CSV data
+models_dir = os.path.join(os.path.dirname(__file__), 'models')
+if not os.path.exists(models_dir):
     print("[ML] Training new models with Real Data...")
     df = forecaster.load_real_data()
     forecaster.train_models(df)
-    forecaster.save_models()
+    forecaster.save_models(models_dir)
     
     # Save sample data for reference
-    df.to_json('backend/data/training_waste_data.json', orient='records', indent=2)
-    print("[ML] Training data saved to backend/data/training_waste_data.json")
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    df.to_json(os.path.join(data_dir, 'training_waste_data.json'), orient='records', indent=2)
+    print(f"[ML] Training data saved to {data_dir}/training_waste_data.json")
 else:
     print("[ML] Loading existing models...")
-    forecaster.load_models()
+    forecaster.load_models(models_dir)
 
 print("[ML] Forecaster ready!")
