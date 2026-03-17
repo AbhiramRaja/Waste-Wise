@@ -5,29 +5,6 @@ import threading
 import traceback
 import sys
 
-# Import ML forecasting module in background
-ml_forecast = None
-ml_load_failed = False
-ml_error_details = None
-
-def _load_ml():
-    global ml_forecast, ml_load_failed, ml_error_details
-    try:
-        print("[APP] Starting background ML loading...")
-        # Ensure we can find the module even if path is weird
-        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-        import ml_forecast as _ml
-        ml_forecast = _ml
-        print("[APP] ML Forecasting module loaded successfully")
-    except Exception as e:
-        ml_load_failed = True
-        ml_error_details = str(e)
-        print(f"[APP] ML Forecasting load FAILED: {e}")
-        traceback.print_exc()
-
-# Start background thread
-threading.Thread(target=_load_ml, daemon=True).start()
-
 app = Flask(__name__)
 # Explicitly allow the Vercel origin and all common headers
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
@@ -43,32 +20,14 @@ def handle_exception(e):
         "status": 500
     }), 500
 
-def ml_not_ready_response():
-    """Returns appropriate 503 response when ML is not ready."""
-    if ml_load_failed:
-        return jsonify({
-            'error': f'ML forecasting failed to load: {ml_error_details}',
-            'status': 'error'
-        }), 503
-    return jsonify({
-        'error': 'ML models are training or loading in the background. This takes ~30–60 seconds on first launch.',
-        'ml_loading': True,
-        'status': 'loading'
-    }), 503
-
 @app.route('/')
 def health_check():
     status = "active"
-    ml_status = "loading"
-    if ml_forecast: ml_status = "ready"
-    if ml_load_failed: ml_status = "failed"
     
     return jsonify({
         "status": status,
         "service": "WasteWise Backend",
-        "ml_module": ml_status,
-        "environment": "production" if os.getenv('RENDER') else "development",
-        "ml_error": ml_error_details
+        "environment": "production" if os.getenv('RENDER') else "development"
     }), 200
 
 @app.route('/api/dashboard', methods=['GET'])
@@ -109,42 +68,6 @@ def chat():
         return jsonify({'response': response_text}), 200
     except Exception as e:
         return jsonify({'error': 'Failed to generate response'}), 500
-
-# ML FORECASTING ENDPOINTS
-@app.route('/api/forecast/supply', methods=['GET'])
-def get_supply_forecast():
-    if ml_forecast is None:
-        return ml_not_ready_response()
-    
-    try:
-        material = request.args.get('material', 'PET')
-        region = request.args.get('region', 'Mumbai')
-        days = int(request.args.get('days', 30))
-        
-        predictions = ml_forecast.forecaster.predict_future_supply(material, region, days)
-        return jsonify({
-            'material': material,
-            'region': region,
-            'days_ahead': days,
-            'predictions': predictions
-        }), 200
-    except Exception as e:
-        print(f"[FORECAST ERROR] {e}")
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/forecast/materials', methods=['GET'])
-def get_material_types():
-    if ml_forecast is None:
-        return ml_not_ready_response()
-    
-    try:
-        return jsonify({
-            'materials': ml_forecast.forecaster.material_types,
-            'regions': ml_forecast.forecaster.regions
-        }), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 # MARKETPLACE ENDPOINTS
 @app.route('/api/listings/create', methods=['POST'])
