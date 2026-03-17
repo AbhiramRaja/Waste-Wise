@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import utils
 import os
 import threading
+from werkzeug.utils import secure_filename
+import tempfile
 
 # Import ML forecasting module in a background thread so Flask starts immediately
 ml_forecast = None
@@ -35,7 +38,7 @@ CORS(app)
 
 @app.route('/')
 def health_check():
-    return jsonify({"status": "active", "service": "WasteWise Backend", "message": "ML engine is warming up..."}), 200
+    return jsonify({"status": "active", "service": "WasteWise Backend", "message": "Backend is live!"}), 200
 
 @app.route('/api/dashboard', methods=['GET'])
 def dashboard():
@@ -117,8 +120,8 @@ def get_supply_forecast():
     GET /api/forecast/supply?material=PET&region=Mumbai&days=30
     Returns predicted supply for specific material and region
     """
-    if ml_forecast is None:
-        return ml_not_ready_response()
+    if not ML_ENABLED:
+        return jsonify({'error': 'ML forecasting not available'}), 503
     
     material = request.args.get('material', 'PET')
     region = request.args.get('region', 'Mumbai')
@@ -243,5 +246,4 @@ if __name__ == '__main__':
     print("=" * 60)
     print("🚀 Starting Flask Backend on http://localhost:5001")
     print("=" * 60)
-    app.run(debug=False, use_reloader=False, port=5001)
-
+    app.run(debug=True, port=5001)
