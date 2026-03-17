@@ -315,32 +315,24 @@ class WasteSupplyForecaster:
         """
         Load trained models from disk.
         """
-        for material in self.material_types:
-            filename = f"{path}/{material}_model.pkl"
-            if os.path.exists(filename):
-                with open(filename, 'rb') as f:
-                    self.models[material] = pickle.load(f)
-        print(f"[ML] Models loaded from {path}")
+        print(f"[ML] Successfully loaded {len(self.models)} models from {path}")
 
-
-# Initialize and train on import
-print("[ML] Initializing Waste Supply Forecaster...")
-forecaster = WasteSupplyForecaster()
 
 # Generate and train if models don't exist
-models_dir = os.path.join(os.path.dirname(__file__), 'models')
-if not os.path.exists(models_dir):
-    print("[ML] Training new models with Real Data...")
+models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'models'))
+print(f"[ML] Checking for models in: {models_dir}")
+if not os.path.exists(models_dir) or not os.listdir(models_dir):
+    print("[ML] models directory missing or empty. Starting background training...")
     df = forecaster.load_real_data()
     forecaster.train_models(df)
     forecaster.save_models(models_dir)
     
     # Save sample data for reference
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data'))
     df.to_json(os.path.join(data_dir, 'training_waste_data.json'), orient='records', indent=2)
     print(f"[ML] Training data saved to {data_dir}/training_waste_data.json")
 else:
-    print("[ML] Loading existing models...")
+    print(f"[ML] Found existing models. Loading...")
     forecaster.load_models(models_dir)
 
 print("[ML] Forecaster ready!")
