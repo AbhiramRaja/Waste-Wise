@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import axios from 'axios'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { INDIAN_STATES, CITIES_BY_STATE, CITY_DATA } from '../data/indianCitiesData'
@@ -58,6 +58,8 @@ function generateCollectionPoints(city) {
         points.push({
             id: i,
             position: [baseCoords[0] + latOffset, baseCoords[1] + lngOffset],
+            x: (i / numPoints) * 90 + 5,
+            y: Math.random() * 80 + 10,
             fillLevel,
             location: `Collection Point ${i + 1}`
         })
@@ -158,7 +160,7 @@ export default function CityInsights() {
         }
     }, [selectedCity, selectedState])
 
-    const collectionPoints = generateCollectionPoints(selectedCity)
+    const collectionPoints = useMemo(() => generateCollectionPoints(selectedCity), [selectedCity])
     const cityCenter = CITY_COORDINATES[selectedCity] || [28.6139, 77.2090]
 
     const handleStateChange = (newState) => {
@@ -321,53 +323,49 @@ export default function CityInsights() {
             <div className="card">
                 <h3 className="text-lg font-semibold mb-4">Collection Hotspot Map - {selectedCity}</h3>
                 <div className="rounded-lg h-96 bg-stone-800 relative overflow-hidden">
-                    <svg width="100%" height="100%" className="absolute inset-0">
+                    <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0">
                         {/* Grid background */}
                         <defs>
-                            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#44403c" strokeWidth="0.5" />
+                            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#44403c" strokeWidth="0.1" />
                             </pattern>
                         </defs>
-                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        <rect width="100" height="100" fill="url(#grid)" />
 
                         {/* Collection route */}
                         <polyline
-                            points={collectionPoints.map((p, i) => `${(i / collectionPoints.length) * 90 + 5}%,${Math.random() * 80 + 10}%`).join(' ')}
+                            points={collectionPoints.map(p => `${p.x},${p.y}`).join(' ')}
                             fill="none"
                             stroke="#10b981"
-                            strokeWidth="2"
-                            strokeDasharray="5,5"
+                            strokeWidth="0.5"
+                            strokeDasharray="1,1"
                             opacity="0.6"
                         />
 
                         {/* Collection points */}
-                        {collectionPoints.map((point, idx) => {
-                            const x = (idx / collectionPoints.length) * 90 + 5
-                            const y = Math.random() * 80 + 10
-                            return (
-                                <g key={point.id}>
-                                    <circle
-                                        cx={`${x}%`}
-                                        cy={`${y}%`}
-                                        r="8"
-                                        fill={getFillColor(point.fillLevel)}
-                                        stroke="#fff"
-                                        strokeWidth="2"
-                                        className="cursor-pointer hover:r-10 transition-all"
-                                    />
-                                    <text
-                                        x={`${x}%`}
-                                        y={`${y - 2}%`}
-                                        textAnchor="middle"
-                                        fill="#fafaf9"
-                                        fontSize="10"
-                                        className="pointer-events-none"
-                                    >
-                                        {idx + 1}
-                                    </text>
-                                </g>
-                            )
-                        })}
+                        {collectionPoints.map((point, idx) => (
+                            <g key={point.id}>
+                                <circle
+                                    cx={point.x}
+                                    cy={point.y}
+                                    r="1.5"
+                                    fill={getFillColor(point.fillLevel)}
+                                    stroke="#fff"
+                                    strokeWidth="0.4"
+                                    className="cursor-pointer hover:r-2 transition-all"
+                                />
+                                <text
+                                    x={point.x}
+                                    y={point.y - 1.5}
+                                    textAnchor="middle"
+                                    fill="#fafaf9"
+                                    fontSize="2"
+                                    className="pointer-events-none"
+                                >
+                                    {idx + 1}
+                                </text>
+                            </g>
+                        ))}
                     </svg>
 
                     {/* City label */}

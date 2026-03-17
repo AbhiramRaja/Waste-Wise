@@ -1,18 +1,30 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import utils
 import os
-from werkzeug.utils import secure_filename
-import tempfile
+import threading
 
-# Import ML forecasting module
-try:
-    import ml_forecast
-    ML_ENABLED = True
-    print("[APP] ML Forecasting module loaded successfully")
-except Exception as e:
-    ML_ENABLED = False
-    print(f"[APP] ML Forecasting disabled: {e}")
+# Import ML forecasting module in a background thread so Flask starts immediately
+ml_forecast = None
+ml_load_failed = False
+
+def _load_ml():
+    global ml_forecast, ml_load_failed
+    try:
+        import ml_forecast as _ml
+        ml_forecast = _ml
+        print("[APP] ML Forecasting module loaded successfully")
+    except Exception as e:
+        ml_load_failed = True
+        print(f"[APP] ML Forecasting disabled: {e}")
+
+ml_thread = threading.Thread(target=_load_ml, daemon=True)
+ml_thread.start()
+
+def ml_not_ready_response():
+    """Returns appropriate 503 response when ML is not ready."""
+    if ml_load_failed:
+        return jsonify({'error': 'ML forecasting failed to load'}), 503
+    return jsonify({'error': 'ML forecasting is still loading. Please retry in a moment.', 'ml_loading': True}), 503
 
 from marketplace import exchange as market
 
@@ -20,82 +32,6 @@ from marketplace import exchange as market
 
 app = Flask(__name__)
 CORS(app)
-
-# Configure upload settings
-UPLOAD_FOLDER = tempfile.gettempdir()
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/api/classify', methods=['POST'])
-def classify():
-    """
-    POST /api/classify
-    Accepts image file, returns waste classification
-    """
-    print(f"\n[API] === CLASSIFY REQUEST RECEIVED ===")
-    print(f"[API] Files in request: {list(request.files.keys())}")
-    print(f"[API] Form data: {list(request.form.keys())}")
-    
-    if 'image' not in request.files:
-        print(f"[API] ERROR: No image file in request")
-        return jsonify({'error': 'No image file provided'}), 400
-    
-    file = request.files['image']
-    print(f"[API] Image file: {file.filename}")
-    
-    if file.filename == '':
-        print(f"[API] ERROR: Empty filename")
-        return jsonify({'error': 'No file selected'}), 400
-    
-    if not allowed_file(file.filename):
-        print(f"[API] ERROR: Invalid file type")
-        return jsonify({'error': 'Invalid file type'}), 400
-    
-    try:
-        # Save temporarily
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
-        print(f"[API] Saving to: {filepath}")
-        file.save(filepath)
-        
-        # Classify
-        print(f"[API] Starting classification...")
-        result = utils.classify_waste(filepath)
-        print(f"[API] Classification complete: {result}")
-        
-        # Clean up
-        os.remove(filepath)
-        print(f"[API] Temp file removed")
-        
-        return jsonify(result), 200
-    
-    except Exception as e:
-        print(f"[API] EXCEPTION: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/guidance', methods=['POST'])
-def guidance():
-    """
-    POST /api/guidance
-    Accepts waste type, returns disposal guidance
-    """
-    data = request.get_json()
-    
-    if not data or 'wasteType' not in data:
-        return jsonify({'error': 'wasteType is required'}), 400
-    
-    waste_type = data['wasteType']
-    
-    try:
-        guidance_text = utils.get_disposal_guidance(waste_type)
-        return jsonify({'guidance': guidance_text}), 200
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/dashboard', methods=['GET'])
 def dashboard():
@@ -177,8 +113,8 @@ def get_supply_forecast():
     GET /api/forecast/supply?material=PET&region=Mumbai&days=30
     Returns predicted supply for specific material and region
     """
-    if not ML_ENABLED:
-        return jsonify({'error': 'ML forecasting not available'}), 503
+    if ml_forecast is None:
+        return ml_not_ready_response()
     
     material = request.args.get('material', 'PET')
     region = request.args.get('region', 'Mumbai')
@@ -204,8 +140,8 @@ def get_market_forecast():
     GET /api/forecast/market?days=90
     Returns complete market forecast for all materials and regions
     """
-    if not ML_ENABLED:
-        return jsonify({'error': 'ML forecasting not available'}), 503
+    if ml_forecast is None:
+        return ml_not_ready_response()
     
     days = int(request.args.get('days', 90))
     
@@ -224,8 +160,8 @@ def get_material_types():
     GET /api/forecast/materials
     Returns list of available material types and regions
     """
-    if not ML_ENABLED:
-        return jsonify({'error': 'ML forecasting not available'}), 503
+    if ml_forecast is None:
+        return ml_not_ready_response()
     
     return jsonify({
         'materials': ml_forecast.forecaster.material_types,
@@ -303,4 +239,5 @@ if __name__ == '__main__':
     print("=" * 60)
     print("🚀 Starting Flask Backend on http://localhost:5001")
     print("=" * 60)
-    app.run(debug=True, port=5001)
+    app.run(debug=False, use_reloader=False, port=5001)
+

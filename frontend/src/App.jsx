@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
-import Scanner from './pages/Scanner'
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom'
 import CityInsights from './pages/CityInsights'
 import Learn from './pages/Learn'
 import WasteDatabase from './pages/WasteDatabase'
@@ -14,7 +13,6 @@ function NavBar() {
     const location = useLocation()
 
     const tabs = [
-        { path: '/', label: 'Scan', icon: '🔍' },
         { path: '/insights', label: 'City Insights', icon: '📊' },
         { path: '/learn', label: 'Learn', icon: '📚' },
         { path: '/database', label: 'Database', icon: '🗄️' },
@@ -28,7 +26,7 @@ function NavBar() {
         <nav className="glass sticky top-0 z-50 shadow-sm">
             <div className="container mx-auto px-6 py-4">
                 <div className="flex items-center justify-between">
-                    <Link to="/" className="flex items-center space-x-3">
+                    <Link to="/insights" className="flex items-center space-x-3">
                         <div className="text-3xl">♻️</div>
                         <div>
                             <h1 className="text-xl font-semibold">
@@ -92,7 +90,7 @@ function App() {
             <div className="min-h-screen pb-12">
                 <NavBar />
                 <Routes>
-                    <Route path="/" element={<Scanner />} />
+                    <Route path="/" element={<Navigate to="/insights" replace />} />
                     <Route path="/insights" element={<CityInsights />} />
                     <Route path="/learn" element={<Learn />} />
                     <Route path="/database" element={<WasteDatabase />} />

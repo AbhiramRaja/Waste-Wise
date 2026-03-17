@@ -4,3 +4,5 @@ google-generativeai
 pandas
 python-dotenv
 Pillow
+gunicorn
+scikit-learn

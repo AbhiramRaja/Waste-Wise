@@ -24,6 +24,8 @@ export default function SupplyForecast() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
+    const [mlLoading, setMlLoading] = useState(false)
+
     useEffect(() => {
         fetchMetadata()
     }, [])
@@ -34,20 +36,27 @@ export default function SupplyForecast() {
         }
     }, [selectedMaterial, selectedRegion, days])
 
-    const fetchMetadata = async () => {
+    const fetchMetadata = async (retryCount = 0) => {
         try {
             const res = await axios.get('/api/forecast/materials')
             setMaterials(res.data.materials)
             setRegions(res.data.regions)
             if (res.data.materials.length > 0) setSelectedMaterial(res.data.materials[0])
             if (res.data.regions.length > 0) setSelectedRegion(res.data.regions[0])
+            setMlLoading(false)
         } catch (err) {
-            console.error('Error fetching metadata:', err)
-            setError('Failed to load material types')
+            const isLoading = err.response?.data?.ml_loading
+            if (isLoading && retryCount < 20) {
+                setMlLoading(true)
+                setTimeout(() => fetchMetadata(retryCount + 1), 4000)
+            } else {
+                setMlLoading(false)
+                setError('Failed to load material types')
+            }
         }
     }
 
-    const fetchForecast = async () => {
+    const fetchForecast = async (retryCount = 0) => {
         setLoading(true)
         try {
             const res = await axios.get('/api/forecast/supply', {
@@ -59,13 +68,21 @@ export default function SupplyForecast() {
             })
             setForecastData(res.data)
             setError(null)
+            setMlLoading(false)
         } catch (err) {
-            console.error('Error fetching forecast:', err)
+            const isLoading = err.response?.data?.ml_loading
+            if (isLoading && retryCount < 20) {
+                setMlLoading(true)
+                setTimeout(() => fetchForecast(retryCount + 1), 4000)
+                return
+            }
+            setMlLoading(false)
             setError('Failed to load forecast data. Make sure backend ML module is active.')
         } finally {
             setLoading(false)
         }
     }
+
 
     return (
         <div className="container mx-auto px-6 py-8">
@@ -141,7 +158,13 @@ export default function SupplyForecast() {
                 </div>
             </div>
 
-            {error ? (
+            {mlLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+                    <p className="text-stone-600 dark:text-stone-400 font-medium">🤖 ML models are training in the background...</p>
+                    <p className="text-sm text-stone-400">This takes ~30–60 seconds on first launch. Auto-retrying every 4s.</p>
+                </div>
+            ) : error ? (
                 <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200">
                     {error}
                 </div>
