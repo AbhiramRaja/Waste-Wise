@@ -16,8 +16,8 @@ env/
 # Dataset and Models
 Waste-categoriser/dataset/
 Waste-categoriser/runs/
-backend/models/*.pkl
-backend/data/*.csv
+!backend/models/*.pkl
+!backend/data/Waste_Management_and_Recycling_India.csv
 backend/data/*.json
 
 # Keep example data if small, but ignore large ones
